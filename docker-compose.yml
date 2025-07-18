@@ -1,0 +1,41 @@
+name: magento-env
+
+services:
+
+  magento-database:
+    image: mysql:8
+    container_name: magento-database
+    ports:
+      - 3306:3306
+    environment:
+      - MYSQL_ROOT_PASSWORD=1234
+      - MYSQL_DATABASE=magento2
+    networks:
+      - magento-network
+
+  magento-opensearch:
+    image: bitnami/opensearch:latest
+    container_name: magento-opensearch
+    ports:
+      - 9200:9200
+    networks:
+      - magento-network
+
+  magento:
+    build: .
+    container_name: magento-env
+    depends_on:
+      - magento-database
+      - magento-opensearch
+    networks:
+      - magento-network
+    ports:
+      - 8080:8080
+    volumes:
+      - ./magento2:/app
+      - ./www.conf:/etc/php/8.4/fpm/pool.d/www.conf
+      - ./nginx.conf:/etc/nginx/nginx.conf
+
+networks:
+  magento-network:
+    driver: bridge
